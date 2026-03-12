@@ -3,19 +3,21 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
-const base = "/calmisu-landing/";
+export default defineConfig(({ mode }) => {
+  const base = mode === "production" ? "/calmisu-landing/" : "/";
 
-const rewritePublicPaths = (): Plugin => ({
-  name: "rewrite-public-paths",
-  transform(code, id) {
-    if (id.includes("node_modules") || !/\.[jt]sx?$/.test(id)) return;
-    if (!code.includes('"/images/')) return;
-    return { code: code.replaceAll('"/images/', `"${base}images/`) };
-  },
-});
+  const rewritePublicPaths = (): Plugin => ({
+    name: "rewrite-public-paths",
+    transform(code, id) {
+      if (mode !== "production") return;
+      if (id.includes("node_modules") || !/\.[jt]sx?$/.test(id)) return;
+      if (!code.includes('"/images/')) return;
+      return { code: code.replaceAll('"/images/', `"${base}images/`) };
+    },
+  });
 
-export default defineConfig(({ mode }) => ({
-  base,
+  return ({
+    base,
   server: {
     host: "::",
     port: 8080,
@@ -33,4 +35,5 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
-}));
+  });
+});
